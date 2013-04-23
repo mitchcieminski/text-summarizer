@@ -1,0 +1,18 @@
+THIS FILE SHOWS WHAT NEEDS TO BE DONE WITH THE PROJECT
+
+Computer Science stuff:
+
+Markov
+-Create matrix from a file
+-Accessing Corpus Matrix
+-Building Corpus Matrix
+-Other matrix math
+
+Linear Algebra stuff:
+
+Takes plaintext
+Builds Markov Chain
+Finds eigenvector (principal and others)
+Compares text's eigenvector and compares it with the Corpus Matrix
+???
+Outputs keywords
