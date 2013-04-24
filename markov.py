@@ -100,6 +100,6 @@ def output_markov_file(input_file, matrix_file, wordloc_file):
     matrix_file.flush()
 
 if __name__ == '__main__':
-    files = ('test data/1342.txt', 'test data/1661.txt')
+    files = ('testdata/1342.txt', 'testdata/1661.txt')
     markovs = [build_markov(open(filename)) for filename in files]
     (newmarkovs, newwordloc) = compare_matrices(markovs[0], markovs[1])
