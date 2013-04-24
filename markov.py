@@ -101,7 +101,20 @@ def primary_eigenvec(matrix):
     (vec, val) = la.eigs(matrix, 1)[0]
     return vec
 
+def output_markov_file(input_file, matrix_file, wordloc_file):
+    #takes an input file object, builds its markov matrix, and writes to an output file object in row,col,data\newline format. Also builds the wordloc dictionary and outputs it to a word:index\newline format.
+
+    #the output matrix files should be opened as "open(filename,'w')" so that you can write to them. I think the files have to actually exist, too.
+
+    (matrix, wordloc) = build_markov(input_file)
+    for row, column, data in zip(matrix.row, matrix.col, matrix.data):
+        matrix_file.write('%d,%d,%f\n' % (row, column, data))
+    matrix_file.flush()
+    for key in wordloc:
+        wordloc_file.write('%s:%d\n' % (key, wordloc[key]))
+    matrix_file.flush()
+
 if __name__ == '__main__':
-    files = ('test data/1342.txt', 'test data/1661.txt')
+    files = ('testdata/1342.txt', 'testdata/1661.txt')
     markovs = [build_markov(open(filename)) for filename in files]
     (newmarkovs, newwordloc) = compare_matrices(markovs[0], markovs[1])
