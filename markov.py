@@ -1,7 +1,20 @@
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import coo_matrix, dok_matrix, csr_matrix
+from scipy.sparse import linalg as la
 import re
 word_re = r"[\w']+"
+
+def normalize(matrix):
+    nonzero = matrix.nonzero()
+    matrix = dok_matrix(matrix)
+    sums = matrix.sum(0).tolist()[0]
+    (row, col, data) = zip*([(r, c, matrix[r,c] / sums[r]) if \
+                             matrix[r,c] != 0 else \
+                             (r, c, matrix[r,c]) for \
+                             r,c in zip(nonzero[0].tolist(), \
+                                        nonzero[1].tolist())])
+    return coo_matrix((data, (row, col)), dtype = np.float)
+
 
 def build_markov(textfile):
 
@@ -21,7 +34,8 @@ def build_markov(textfile):
             c.append(indices[0])
             r.append(indices[1])
             v.append(1)
-    markmat = coo_matrix((v,(r,c)), shape=(numwords, numwords))
+    markmat = normalize(coo_matrix((v,(r,c)), dtype=np.float,\
+                                   shape=(numwords, numwords)))
 
     return (markmat, wordloc)
 
@@ -75,8 +89,8 @@ def load_matrix(matrixfile):
 
 def load_wordloc(wordlocfile):
     wordloc = {}
-    for line in wordlocfile.xreadlines()
-        line = line.split(',')
+    for line in wordlocfile.xreadlines():
+        line = line.split(':')
         wordloc[line[0]] = int(line[1])
     return wordloc
 
@@ -84,7 +98,8 @@ def build_english():
     pass
 
 def primary_eigenvec(matrix):
-    pass
+    (vec, val) = la.eigs(matrix, 1)[0]
+    return vec
 
 if __name__ == '__main__':
     files = ('test data/1342.txt', 'test data/1661.txt')
