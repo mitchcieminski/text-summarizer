@@ -26,17 +26,17 @@ def build_markov(textfile):
     return (markmat, wordloc)
 
 def compare_matrices( mdata0, mdata1 ):
-    
+
     # Unpack the input
     markmats, wordlocs = (mdata0[0], mdata1[0]), (mdata0[1], mdata1[1])
-    
+
     # Make goddamn sure it's a coo_matrix
     markmats = [coo_matrix(markmat) for markmat in markmats]
-    
+
     # Setup the transformation
     transform = {}
     nextspot = markmats[0].shape[0]
-    
+
     # Find what index in the second matrix corresponds to each index in
     # The first matrix and populate transform with that info
     for word in wordlocs[0]:
@@ -46,19 +46,23 @@ def compare_matrices( mdata0, mdata1 ):
             transform[wordlocs[0][word]] = nextspot
             wordlocs[1][word] = nextspot
             nextspot += 1
-    
+
     # Apply the transformation
-    markmats[0].row = [transform[ind] for ind in markmats[0].row]
-    markmats[0].col = [transform[ind] for ind in markmats[0].col]
-    
+    row = [transform[ind] for ind in markmats[0].row]
+    col = [transform[ind] for ind in markmats[0].col]
+
     #And add the extra rows to the second matrix
-    markmats[1] = coo_matrix(markmats[1],(nextspot, nextspot))
-    
+    markmats[0] = coo_matrix((markmats[0].data, (row,col)),\
+                             (nextspot, nextspot))
+    markmats[1] = coo_matrix((markmats[1].data, \
+                              (markmats[1].row, markmats[1].col)),\
+                              (nextspot, nextspot))
+
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
 
 if __name__ == '__main__':
     files = ('test data/1342.txt', 'test data/1661.txt')
-    
+
     markovs = [build_markov(open(filename)) for filename in files]
-    compare_matrices(markovs[0], markovs[1])
+    (newmarkovs, newwordloc) = compare_matrices(markovs[0], markovs[1])
