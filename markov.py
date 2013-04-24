@@ -60,16 +60,31 @@ def compare_matrices( mdata0, mdata1 ):
 
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
-def load_markov(matrixfile, wordlocfile):
-    data = []
-    row = []
-    col = []
-    for line in matrixfile.xreadlines().split(','):
-        row, col, data = line[0], line[1], line[2]
+def load_matrix(matrixfile):
+    row, col, data = [],[],[]
+    for line in matrixfile.xreadlines():
+        try:
+            (newrow, newcol, newdata) = line.split[',']
+            row.append(int(newrow))
+            col.append(int(newcol))
+            data.append(float(newdata))
+        except:
+            print 'Badly formatted line in file!'
+            raise TypeError
+    return coo_matrix((data,(row,col)))
+
+def load_wordloc(wordlocfile):
     wordloc = {}
-    for line in wordlocfile.xreadlines().split(','):
-        wordloc[line[0]] = line[1]
-    return (coo_matrix((data,(row,col))), wordloc)
+    for line in wordlocfile.xreadlines()
+        line = line.split(',')
+        wordloc[line[0]] = int(line[1])
+    return wordloc
+
+def build_english():
+    pass
+
+def primary_eigenvec(matrix):
+    pass
 
 def output_markov_file(input_file, matrix_file, wordloc_file):
     #takes an input file object, builds its markov matrix, and writes to an output file object in row,col,data\newline format.
