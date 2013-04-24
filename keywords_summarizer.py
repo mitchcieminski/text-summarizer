@@ -1,8 +1,11 @@
 # bring in the files we need
 import markov
 
-# grab the markov matrix for the given text
-textfile = open('test data/1342.txt')
+# prompt user for text file
+filename = raw_imput('select a text file\n')
+
+# make and store the markov matrix for the given text
+textfile = open(filename)
 (markmat , worloc) = markov.build_markov(textfile)
 
 # call the english matrix
@@ -13,4 +16,12 @@ eigentext = markov.primary_eigen(markmat , worloc)
 eigeneng = markov.primary_eigen(engmat , engloc)
 
 # compare the two
-eigendiff = eigentext - eigeneng
+
+# eigendiff will be negative; the larger the negative value, 
+# the less common the word is in the whole english language
+eigendiff = eigentext - eigeneng 
+
+# percentdiff will be positive; smaller percentdiff's will indicate 
+# a commonly used word, whereas larger percentdiff's will indicate an
+# uncommon word, likely important to the text
+percentdiff = ((eigeneng - eigentext) / ((eigeneng + eigentext)/2)) * 100
