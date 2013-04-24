@@ -87,9 +87,10 @@ def primary_eigenvec(matrix):
     pass
 
 def output_markov_file(input_file, matrix_file, wordloc_file):
-    #takes an input file object, builds its markov matrix, and writes to an output file object in row,col,data\newline format.
+    #takes an input file object, builds its markov matrix, and writes to an output file object in row,col,data\newline format. Also builds the wordloc dictionary and outputs it to a word:index\newline format.
 
     #the output matrix files should be opened as "open(filename,'w')" so that you can write to them. I think the files have to actually exist, too.
+
     (matrix, wordloc) = build_markov(input_file)
     for row, column, data in zip(matrix.row, matrix.col, matrix.data):
         matrix_file.write('%d,%d,%f\n' % (row, column, data))
