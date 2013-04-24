@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix
 import re
+word_re = r"[\w']+"
 
 def build_markov(textfile):
 
@@ -22,11 +23,42 @@ def build_markov(textfile):
             v.append(1)
     markmat = coo_matrix((v,(r,c)), shape=(numwords, numwords))
 
-    return (wordloc, markmat)
+    return (markmat, wordloc)
 
-def compare_matrices( tuple0, tuple1 ):
-    markmat, wordloc = (tuple0[0], tuple1[0]), (tuple0[1], tuple1[1])
+def compare_matrices( mdata0, mdata1 ):
     
-    # Do stuff to markmat and wordloc to make the matrices the same size
+    # Unpack the input
+    markmats, wordlocs = (mdata0[0], mdata1[0]), (mdata0[1], mdata1[1])
     
-    return ((markmat[0], wordloc[0]), (matkmat[1], wordloc[1]))
+    # Make goddamn sure it's a coo_matrix
+    markmats = [coo_matrix(markmat) for markmat in markmats]
+    
+    # Setup the transformation
+    transform = {}
+    nextspot = markmats[0].shape[0]
+    
+    # Find what index in the second matrix corresponds to each index in
+    # The first matrix and populate transform with that info
+    for word in wordlocs[0]:
+        try:
+            transform[wordlocs[0][word]] = wordlocs[1][word]
+        except KeyError:
+            transform[wordlocs[0][word]] = nextspot
+            wordlocs[1][word] = nextspot
+            nextspot += 1
+    
+    # Apply the transformation
+    markmats[0].row = [transform[ind] for ind in markmats[0].row]
+    markmats[0].col = [transform[ind] for ind in markmats[0].col]
+    
+    #And add the extra rows to the second matrix
+    markmats[1] = coo_matrix(markmats[1],(nextspot, nextspot))
+    
+    return ((markmats[0],  markmats[1]), wordlocs[1])
+
+
+if __name__ == '__main__':
+    files = ('1007.txt', '2007.txt')
+    
+    markovs = [build_markov(open(filename)) for filename in files]
+    compare_matrices(markovs[0], markovs[1])
