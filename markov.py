@@ -58,7 +58,7 @@ def compare_matrices( mdata0, mdata1 ):
 
 
 if __name__ == '__main__':
-    files = ('1007.txt', '2007.txt')
+    files = ('test data/1342.txt', 'test data/1661.txt')
     
     markovs = [build_markov(open(filename)) for filename in files]
     compare_matrices(markovs[0], markovs[1])
