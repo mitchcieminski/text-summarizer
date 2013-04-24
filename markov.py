@@ -60,9 +60,18 @@ def compare_matrices( mdata0, mdata1 ):
 
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
+def load_markov(matrixfile, wordlocfile):
+    data = []
+    row = []
+    col = []
+    for line in matrixfile.xreadlines().split(','):
+        row, col, data = line[0], line[1], line[2]
+    wordloc = {}
+    for line in wordlocfile.xreadlines().split(','):
+        wordloc[line[0]] = line[1]
+    return (coo_matrix((data,(row,col))), wordloc)
 
 if __name__ == '__main__':
     files = ('test data/1342.txt', 'test data/1661.txt')
-
     markovs = [build_markov(open(filename)) for filename in files]
     (newmarkovs, newwordloc) = compare_matrices(markovs[0], markovs[1])
