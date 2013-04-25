@@ -26,12 +26,14 @@ def build_markov(textfile):
     for line in textfile.xreadlines():
         line = re.findall(word_re, line.lower())
         for words in zip(line[:-1], line[1:]):
-            indices = [wordloc.get(words[0], -1),wordloc.get(words[1], -1)]
-            for i, (ind,w) in enumerate(zip(indices, words)):
+            indices = []
+            for word in words:
+                ind = wordloc.get(word, -1)
                 if ind == -1:
-                    wordloc[w] = numwords
+                    ind = numwords
+                    wordloc[word] = ind
                     numwords += 1
-                    indices[i] = wordloc[w]
+                indices.append(ind)
             c.append(indices[0])
             r.append(indices[1])
             v.append(1)
@@ -119,7 +121,8 @@ def build_english():
     pass
 
 def primary_eigenvec(matrix):
-    (vec, val) = la.eigs(matrix, 1)[0]
+    (val, vec) = la.eigs(matrix, 1)
+    vec = np.absolute(vec / vec.sum())
     return vec
 
 if __name__ == '__main__':
