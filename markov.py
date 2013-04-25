@@ -9,7 +9,6 @@ def normalize(matrix):
     nonzero = matrix.nonzero()
     sums = matrix.sum(0)
     matrix = csc_matrix(matrix)
-    print sums
 
     for i in xrange(matrix.shape[0]):
         col_vals = matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]].copy()
@@ -76,7 +75,8 @@ def compare_matrices( mdata0, mdata1 ):
 
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
-def write_matrix(matrix, matrix_file):
+def write_matrix(matrix, filename):
+    matrix = coo_matrix(matrix)
     with open(filename, 'w') as mx_file:
         for row, column, data in zip(matrix.row, matrix.col, matrix.data):
             mx_file.write('%d,%d,%f\n' % (row, column, data))
@@ -86,19 +86,19 @@ def load_matrix(filename):
     with open(filename) as mx_file:
         for line in mx_file.xreadlines():
             try:
-                (newrow, newcol, newdata) = line.split[',']
+                (newrow, newcol, newdata) = line.split(',')
                 row.append(int(newrow))
                 col.append(int(newcol))
                 data.append(float(newdata))
             except:
-                print 'Badly formatted line in file!'
+                print 'Bady Formatted Line: %s' %line
                 raise TypeError
     return coo_matrix((data,(row,col)))
 
 def write_wordloc(wordloc, filename):
     with open(filename, 'w') as wl_file:
         for key in wordloc:
-            wl_file_file.write('%s:%d\n' % (key, wordloc[key]))
+            wl_file.write('%s:%d\n' % (key, wordloc[key]))
 
 def load_wordloc(filename):
     with open(filename) as wl_file:
@@ -111,9 +111,9 @@ def load_wordloc(filename):
 def process_file(filename):
     """Build and write to disk the markov matrix and its wordloc"""
     (matrix, wordloc) = build_markov(open(filename))
-    prefix = filename.split['.'][0]
-    write_matrix('%.mat' %prefix)
-    write_wordloc('%.mat' %prefix)
+    prefix = filename.split('.')[0]
+    write_matrix(matrix, '%s.mat' %prefix)
+    write_wordloc(wordloc, '%s.wlc' %prefix)
 
 def build_english():
     pass
