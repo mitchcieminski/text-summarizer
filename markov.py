@@ -74,25 +74,44 @@ def compare_matrices( mdata0, mdata1 ):
 
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
-def load_matrix(matrixfile):
+def write_matrix(matrix, matrix_file):
+    with open(filename, 'w') as mx_file:
+        for row, column, data in zip(matrix.row, matrix.col, matrix.data):
+            mx_file.write('%d,%d,%f\n' % (row, column, data))
+
+def load_matrix(filename):
     row, col, data = [],[],[]
-    for line in matrixfile.xreadlines():
-        try:
-            (newrow, newcol, newdata) = line.split[',']
-            row.append(int(newrow))
-            col.append(int(newcol))
-            data.append(float(newdata))
-        except:
-            print 'Badly formatted line in file!'
-            raise TypeError
+    with open(filename) as mx_file:
+        for line in mx_file.xreadlines():
+            try:
+                (newrow, newcol, newdata) = line.split[',']
+                row.append(int(newrow))
+                col.append(int(newcol))
+                data.append(float(newdata))
+            except:
+                print 'Badly formatted line in file!'
+                raise TypeError
     return coo_matrix((data,(row,col)))
 
-def load_wordloc(wordlocfile):
-    wordloc = {}
-    for line in wordlocfile.xreadlines():
-        line = line.split(':')
-        wordloc[line[0]] = int(line[1])
+def write_wordloc(wordloc, filename):
+    with open(filename, 'w') as wl_file:
+        for key in wordloc:
+            wl_file_file.write('%s:%d\n' % (key, wordloc[key]))
+
+def load_wordloc(filename):
+    with open(filename) as wl_file:
+        wordloc = {}
+        for line in wl_file.xreadlines():
+            line = line.split(':')
+            wordloc[line[0]] = int(line[1])
     return wordloc
+
+def process_file(filename):
+    """Build and write to disk the markov matrix and its wordloc"""
+    (matrix, wordloc) = build_markov(open(filename))
+    prefix = filename.split['.'][0]
+    write_matrix('%.mat' %prefix)
+    write_wordloc('%.mat' %prefix)
 
 def build_english():
     pass
@@ -101,20 +120,7 @@ def primary_eigenvec(matrix):
     (vec, val) = la.eigs(matrix, 1)[0]
     return vec
 
-def output_markov_file(input_file, matrix_file, wordloc_file):
-    #takes an input file object, builds its markov matrix, and writes to an output file object in row,col,data\newline format. Also builds the wordloc dictionary and outputs it to a word:index\newline format.
-
-    #the output matrix files should be opened as "open(filename,'w')" so that you can write to them. I think the files have to actually exist, too.
-
-    (matrix, wordloc) = build_markov(input_file)
-    for row, column, data in zip(matrix.row, matrix.col, matrix.data):
-        matrix_file.write('%d,%d,%f\n' % (row, column, data))
-    matrix_file.flush()
-    for key in wordloc:
-        wordloc_file.write('%s:%d\n' % (key, wordloc[key]))
-    matrix_file.flush()
-
 if __name__ == '__main__':
     files = ('testdata/1342.txt', 'testdata/1661.txt')
-    markovs = [build_markov(open(filename)) for filename in files]
-    (newmarkovs, newwordloc) = compare_matrices(markovs[0], markovs[1])
+    for f in files:
+        process_file(f)
