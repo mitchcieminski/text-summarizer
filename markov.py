@@ -1,19 +1,21 @@
 import numpy as np
-from scipy.sparse import coo_matrix, dok_matrix, csr_matrix
+from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 from scipy.sparse import linalg as la
 import re
+from time import time
 word_re = r"[\w']+"
 
 def normalize(matrix):
     nonzero = matrix.nonzero()
-    matrix = dok_matrix(matrix)
-    sums = matrix.sum(0).tolist()[0]
-    (row, col, data) = zip*([(r, c, matrix[r,c] / sums[r]) if \
-                             matrix[r,c] != 0 else \
-                             (r, c, matrix[r,c]) for \
-                             r,c in zip(nonzero[0].tolist(), \
-                                        nonzero[1].tolist())])
-    return coo_matrix((data, (row, col)), dtype = np.float)
+    sums = matrix.sum(0)
+    matrix = csc_matrix(matrix)
+    print sums
+
+    for i in xrange(matrix.shape[0]):
+        col_vals = matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]].copy()
+        matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]] = col_vals / np.sum(col_vals)
+
+    return matrix
 
 
 def build_markov(textfile):
@@ -122,5 +124,7 @@ def primary_eigenvec(matrix):
 
 if __name__ == '__main__':
     files = ('testdata/1342.txt', 'testdata/1661.txt')
+    start = time()
     for f in files:
         process_file(f)
+    print time() - start
