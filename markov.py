@@ -114,7 +114,7 @@ def load_data(filename):
                 print 'Bady Formatted Line: %s' %line
                 raise TypeError
 
-    return (coo_matrix((data,(row,col))), wordloc)
+    return (csc_matrix(coo_matrix((data,(row,col)))), wordloc)
 
 def process_file(filename):
     """Build and write to disk the markov matrix and its wordloc"""
@@ -140,14 +140,14 @@ def process_reference():
             %(i-9,i+1, now - prev, now - start, (now - start) / (10 * (i+1)))
             prev = now
 
-def build_reference():
+def build_reference(ref=None):
     for filename in os.listdir(pull_from):
-        with open(os.path.join(pull_from,filename)) as textfile:
-            print textfile.readline()
+        if filename.split('.')[-1] == 'mark':
+            data = load_data(os.path.join(pull_from,filename))
+            print data[0][0,5]
 
 def load_reference():
-    (matrix, numread) = load_matrix(reference + '.mat')
-    wordloc = load_reference(reference + '.wlc')
+    (matrix, wordloc) = load_data(reference + '.mat')
     return (matrix, wordloc, numread)
 
 def primary_eigenvec(matrix):
@@ -161,6 +161,7 @@ if __name__ == '__main__':
     #data = []
     #for i, f in enumerate(files):
     #    process_file(f)
-    process_reference()
+    #process_reference()
+    build_reference()
     print time() - start
     # build_reference()
