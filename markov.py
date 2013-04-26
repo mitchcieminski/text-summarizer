@@ -2,8 +2,13 @@ import numpy as np
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 from scipy.sparse import linalg as la
 import re
+import os
 from time import time
+
 word_re = r"[\w']+"
+reference = 'testdata/reference'
+pull_from = '/Users/Abe/Project_Gutenberg_Raw/'
+
 
 def normalize(matrix):
     nonzero = matrix.nonzero()
@@ -37,9 +42,8 @@ def build_markov(textfile):
             c.append(indices[0])
             r.append(indices[1])
             v.append(1)
-    markmat = normalize(coo_matrix((v,(r,c)), dtype=np.float,\
-                                   shape=(numwords, numwords)))
 
+    markmat = csc_matrix(coo_matrix((v,(r,c)), dtype=np.float, shape=(numwords, numwords)))
     return (markmat, wordloc)
 
 def compare_matrices( mdata0, mdata1 ):
@@ -77,16 +81,30 @@ def compare_matrices( mdata0, mdata1 ):
 
     return ((markmats[0],  markmats[1]), wordlocs[1])
 
-def write_matrix(matrix, filename):
+def write_data(data, filename):
+    """Writes all the data about a text string to a single file, in
+    the format: number of words in the test string, followed by the
+    dictionary mapping words to indexes, followed by the matrix"""
+    (matrix, wordloc) = data
     matrix = coo_matrix(matrix)
-    with open(filename, 'w') as mx_file:
+    with open(filename, 'w') as data_file:
+        for key in wordloc:
+            data_file.write('%s:%d\n' % (key, wordloc[key]))
+        data_file.write('MATRIX\n')
         for row, column, data in zip(matrix.row, matrix.col, matrix.data):
-            mx_file.write('%d,%d,%f\n' % (row, column, data))
+            data_file.write('%d,%d,%f\n' % (row, column, data))
 
-def load_matrix(filename):
+def load_data(filename):
+    wordloc = {}
     row, col, data = [],[],[]
-    with open(filename) as mx_file:
-        for line in mx_file.xreadlines():
+    with open(filename) as data_file:
+        for line in data_file.xreadlines():
+            try:
+                line = line.split(':')
+                wordloc[line[0]] = int(line[1])
+            except:
+                break;
+        for line in data_file.xreadlines():
             try:
                 (newrow, newcol, newdata) = line.split(',')
                 row.append(int(newrow))
@@ -95,30 +113,42 @@ def load_matrix(filename):
             except:
                 print 'Bady Formatted Line: %s' %line
                 raise TypeError
-    return coo_matrix((data,(row,col)))
 
-def write_wordloc(wordloc, filename):
-    with open(filename, 'w') as wl_file:
-        for key in wordloc:
-            wl_file.write('%s:%d\n' % (key, wordloc[key]))
-
-def load_wordloc(filename):
-    with open(filename) as wl_file:
-        wordloc = {}
-        for line in wl_file.xreadlines():
-            line = line.split(':')
-            wordloc[line[0]] = int(line[1])
-    return wordloc
+    return (coo_matrix((data,(row,col))), wordloc)
 
 def process_file(filename):
     """Build and write to disk the markov matrix and its wordloc"""
-    (matrix, wordloc) = build_markov(open(filename))
+    with open(filename) as textfile:
+        try:
+            data = build_markov(textfile)
+        except ValueError:
+            print 'INVALID FILE'
+            return
     prefix = filename.split('.')[0]
-    write_matrix(matrix, '%s.mat' %prefix)
-    write_wordloc(wordloc, '%s.wlc' %prefix)
+    write_data(data, '%s.mark' %prefix)
 
-def build_english():
-    pass
+
+def process_reference():
+    start = time()
+    prev = start
+    for i, filename in enumerate(os.listdir(pull_from)):
+        if filename.split('.')[-1] == 'txt':
+            process_file(os.path.join(pull_from, filename))
+        now = time()
+        if float(i+1) / 10 == (i+1)//10:
+            print 'Files %d-%d took %fs of %fs total, an average of %fs/file overall.\n'\
+            %(i-9,i+1, now - prev, now - start, (now - start) / (10 * (i+1)))
+            prev = now
+
+def build_reference():
+    for filename in os.listdir(pull_from):
+        with open(os.path.join(pull_from,filename)) as textfile:
+            print textfile.readline()
+
+def load_reference():
+    (matrix, numread) = load_matrix(reference + '.mat')
+    wordloc = load_reference(reference + '.wlc')
+    return (matrix, wordloc, numread)
 
 def primary_eigenvec(matrix):
     (val, vec) = la.eigs(matrix, 1)
@@ -126,8 +156,11 @@ def primary_eigenvec(matrix):
     return vec
 
 if __name__ == '__main__':
-    files = ('testdata/1342.txt', 'testdata/1661.txt')
+    #files = ('testdata/1342.txt', 'testdata/1661.txt')
     start = time()
-    for f in files:
-        process_file(f)
+    #data = []
+    #for i, f in enumerate(files):
+    #    process_file(f)
+    process_reference()
     print time() - start
+    # build_reference()

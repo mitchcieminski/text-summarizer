@@ -1,4 +1,5 @@
 # bring in the files we need
+from __future__ import division
 import markov
 import numpy as np
 from numpy import linalg as la
@@ -10,12 +11,20 @@ filename = 'testdata/1661.txt'
 refname = 'testdata/1342.txt'
 
 # make and store the markov matrix for the given text
-textfile = open(filename)
-(markmat , wordloc) = markov.build_markov(textfile)
+with open(filename) as textfile:
+    (markmat , wordloc) = markov.build_markov(textfile)
+
 
 #make the reference matrix
-reffile = open(refname)
-(refmat , refloc) = markov.build_markov(reffile)
+with open(refname) as reffile:
+    (refmat , refloc) = markov.build_markov(reffile)
+
+markmat = markov.normalize(markmat)
+refmat = markov.normalize(refmat)
+
+normfac = markmat.shape[0] / refmat.shape[0]
+print normfac
+
 # call the english matrix
 # (engmat , engloc) = markov.build_english()
 
@@ -24,7 +33,7 @@ reffile = open(refname)
 
 
 # grab the primary eigenvectors
-eigentext = markov.primary_eigenvec(markmat)
+eigentext = markov.primary_eigenvec(markmat) * normfac
 eigenref = markov.primary_eigenvec(refmat)
 #eigeneng = markov.primary_eigen(engmat , engloc)
 
