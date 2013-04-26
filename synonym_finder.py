@@ -13,12 +13,36 @@ revloc = {}
 for word, index in wordloc.iteritems():
     revloc[index] = word
 words = [revloc[i] for i in range(0,thing.shape[0])]
-pairs = []
+distribution = m.primary_eigenvec(m.normalize(markov)).transpose().tolist()[0]
 
+commonness = {}
+for word, likelihood in zip(words, distribution):
+    commonness[word] = likelihood
+
+intellipairs = []
+stupidpairs = []
 for i in range(0,thing.shape[0]):
+    if float(i) / 100 == i / 100:
+        print '%.2f Percent' %(float(i) / thing.shape[0] * 100,)
     problist = thing.getcol(i).todense().transpose().tolist()[0]
-    coupled = zip(*sorted(zip(problist, words)))
-    pairs.append((words[i], coupled[1][-4:]))
+    intelliprob = [prob / commonness[word] for prob, word in zip(problist, words)]
+    coupled = sorted(zip(problist, words))[::-1]
+    intellicoupled = sorted(zip(intelliprob, words))[::-1]
+    intellivant, stupidrelevant = [], []
+    for coupling, word in intellicoupled:
+        if coupling > 0.1:
+            intellivant.append(word)
+        else:
+            break
+    for coupling, word in coupled:
+        if coupling > 0.01:
+            stupidrelevant.append(word)
+        else:
+            break
+    intellipairs.append((words[i], intellivant))
+    stupidpairs.append((words[i], stupidrelevant))
 
-for pair in pairs[100:110]:
-    print pair
+for intellipair, stupidpair in zip(intellipairs[100:110],\
+                                   stupidpairs[100:110]):
+    print intellipair
+    print stupidpair
