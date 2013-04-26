@@ -6,6 +6,7 @@ import os
 from time import time
 
 word_re = r"[\w']+"
+extext = 'testdata/1342.txt'
 reference = 'testdata/reference'
 pull_from = '/Users/Abe/Project_Gutenberg_Raw/'
 
