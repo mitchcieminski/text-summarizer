@@ -16,11 +16,23 @@ def normalize(matrix):
     sums = matrix.sum(0)
     matrix = csc_matrix(matrix)
 
-    for i in xrange(matrix.shape[0]):
+    for i in xrange(matrix.shape[1]):
         col_vals = matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]].copy()
         matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]] = col_vals / np.sum(col_vals)
 
     return matrix
+
+def twonorm(matrix):
+    nonzero = matrix.nonzero()
+    sums = matrix.sum(0)
+    matrix = csc_matrix(matrix)
+
+    for i in xrange(matrix.shape[1]):
+        col_vals = matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]].copy()
+        matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]] = \
+                                            col_vals / np.sum(np.square(col_vals))
+
+    return matrix    
 
 
 def build_markov(textfile):
@@ -48,6 +60,10 @@ def build_markov(textfile):
     return (markmat, wordloc)
 
 def compare_matrices( mdata0, mdata1 ):
+    
+    #Check for the edge case:
+    if not mdata1:
+        return ((mdata0[0], coo_matrix(mdata0[0].shape)), mdata0[1])
 
     # Unpack the input
     markmats, wordlocs = (mdata0[0], mdata1[0]), (mdata0[1], mdata1[1])
@@ -142,14 +158,21 @@ def process_reference():
             prev = now
 
 def build_reference(ref=None):
-    for filename in os.listdir(pull_from):
-        if filename.split('.')[-1] == 'mark':
-            data = load_data(os.path.join(pull_from,filename))
-            print data[0][0,5]
+    data = (load_data(os.path.join(pull_from,filename)) for \
+            filename in os.listdir(pull_from) if \
+            filename.split('.')[-1] == 'mark')
+    ref = None
+    for i, datum in enumerate(data):
+        ((md, mr),wl) = compare_matrices(datum, ref)
+        ref = (mr +  md, wl)
+        if float(i+1) / 10 == (i+1) // 10:
+            write_data(ref, reference + '.mat') 
+            print 'written'
+
 
 def load_reference():
     (matrix, wordloc) = load_data(reference + '.mat')
-    return (matrix, wordloc, numread)
+    return (matrix, wordloc)
 
 def primary_eigenvec(matrix):
     (val, vec) = la.eigs(matrix, 1)
@@ -164,5 +187,5 @@ if __name__ == '__main__':
     #    process_file(f)
     #process_reference()
     build_reference()
+    #print load_reference()
     print time() - start
-    # build_reference()
