@@ -166,12 +166,12 @@ def build_reference(ref=None):
         ((md, mr),wl) = compare_matrices(datum, ref)
         ref = (mr +  md, wl)
         if float(i+1) / 10 == (i+1) // 10:
-            write_data(ref, reference + '.mat') 
+            write_data(ref, reference + '.mark') 
             print 'written'
 
 
 def load_reference():
-    (matrix, wordloc) = load_data(reference + '.mat')
+    (matrix, wordloc) = load_data(reference + '.mark')
     return (matrix, wordloc)
 
 def primary_eigenvec(matrix):

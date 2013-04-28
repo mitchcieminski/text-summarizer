@@ -55,6 +55,13 @@ def cluster(matrix, r, p, tol):
     clustered = coo_matrix((data, (row, col)), shape = (matrix.shape[0], clustnum))
     return m.twonorm(csc_matrix(clustered))
 
+def lookup_cluster(transformlist):
+    totaltransform = transformlist[-1]
+    for transform in transformlist[-2::-1]:
+        totaltransform = transform * totaltransform
+    return totaltransform
+
+
 def svd_cluster(matrix, k):
     (vecs, vals) = la.eigs(matrix, k)
     return (vecs, vals)
