@@ -62,6 +62,7 @@ def lookup_cluster(transformlist):
     return totaltransform
 
 
-def svd_cluster(matrix, k):
-    (vecs, vals) = la.eigs(matrix, k)
+def svd_cluster(matrix, k, tol):
+    (vals, vecs) = la.eigs(matrix, k)
+    vecs = clear_zeroes(np.real(vecs), tol)
     return (vecs, vals)
