@@ -26,7 +26,7 @@ def twonorm(matrix):
     nonzero = matrix.nonzero()
     sums = matrix.sum(0)
     matrix = csc_matrix(matrix)
-
+    
     for i in xrange(matrix.shape[1]):
         col_vals = matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]].copy()
         matrix.data[matrix.indptr[i]:matrix.indptr[i + 1]] = \

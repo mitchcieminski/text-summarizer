@@ -3,8 +3,8 @@ import cluster as c
 import numpy as np
 from scipy.sparse import csr_matrix
 from time import time
-(markov, wordloc) = m.build_markov(open('testdata/1342.txt'))
-#(markov, wordloc) = m.build_markov(open('markov.py'))
+#(markov, wordloc) = m.build_markov(open('testdata/1342.txt'))
+(markov, wordloc) = m.build_markov(open('markov.py'))
 #(markov, wordloc) = m.load_reference()
 
 revloc = {}
@@ -13,7 +13,7 @@ for word, index in wordloc.iteritems():
 
 print 'Built'
 
-thing = m.normalize(markov) * m.normalize(markov.transpose())
+thing = m.normalize(markov) * m.normalize(markov).transpose()
 
 print 'normalized and multiplied'
 
@@ -38,8 +38,35 @@ thing = c.clear_zeroes(m.normalize(markov) * m.normalize(markov.transpose()), 1e
 #         words = [revloc[w] for w in stuff]
 #         print words
 
-svd_clustered = c.svd_cluster(thing, 10, 0.001)
-for i in xrange(0,svd_clustered[0].shape[1]):
-    stuff = svd_clustered[0][:,i].nonzero()[0].tolist()
-    if len(stuff) > 5:
-        print [revloc[w] for w in stuff]
+A = csr_matrix([[0,0,0,0,0,0,0,1,1,0],
+                [0,0,1,0,0,0,1,0,1,0],
+                [0,1,0,0,0,0,1,0,1,1],
+                [0,0,0,0,1,1,0,0,0,1],
+                [0,0,0,1,0,1,0,0,0,1],
+                [0,0,0,1,1,0,0,0,0,1],
+                [0,1,1,0,0,0,0,0,0,0],
+                [1,0,0,0,0,0,0,0,1,0],
+                [1,1,1,0,0,0,0,1,0,0],
+                [0,0,1,1,1,1,0,0,0,0]], dtype=np.float)
+A2 = csr_matrix([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
+L = c.Laplacian(A)
+clustered = c.fiedler_cluster(L, 1)
+print clustered

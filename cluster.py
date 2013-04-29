@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import csc_matrix, coo_matrix
+from scipy.sparse import csc_matrix, coo_matrix, dia_matrix
 from scipy.sparse import linalg as la
 import markov as m
 from time import time
@@ -34,11 +34,11 @@ def cluster(matrix, r, p, tol):
         clustify = exp(clustify, p)
         #print 'POW!'
     del prevclust
-    
+
     clustdata = []
     clustdict = {}
     clustnum = 0
-    
+
     for i in range(0, clustify.shape[0]):
         stuff = clustify.getrow(i).nonzero()[1].tolist()
         if stuff:
@@ -50,7 +50,7 @@ def cluster(matrix, r, p, tol):
             clustdata.extend([(w, clustid, clustify[i,w]) for w in stuff])
             if clustid == clustnum:
                 clustnum += 1
-    
+
     (row, col, data) = zip(*clustdata)
     clustered = coo_matrix((data, (row, col)), shape = (matrix.shape[0], clustnum))
     return m.twonorm(csc_matrix(clustered))
@@ -62,7 +62,24 @@ def lookup_cluster(transformlist):
     return totaltransform
 
 
-def svd_cluster(matrix, k, tol):
-    (vals, vecs) = la.eigs(matrix, k)
-    vecs = clear_zeroes(np.real(vecs), tol)
-    return (vecs, vals)
+def fiedler_cluster(L, k):
+    (vals, vecs) = la.eigs(L)
+    vecs = vecs[:,1:] - np.array([vecs[:,0] for i in xrange(1, vecs.shape[1])]).transpose()
+    vecs = np.real(vecs[:,:k])
+    signify = lambda(x): True if x > 0 else False
+    signify = np.vectorize(signify)
+    vecs = signify(vecs)
+    groups = {}
+    for i in xrange(0, vecs.shape[0]):
+        tup = tuple(vecs[i,:].tolist())
+        try:
+            groups[tup].append(i)
+        except:
+            groups[tup] = [i]
+    return groups
+
+
+def Laplacian(A):
+    degrees = A.sum(1)
+    D = dia_matrix(((degrees.transpose()),(0)), shape=A.shape)
+    return D - A
