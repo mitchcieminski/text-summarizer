@@ -63,9 +63,11 @@ def lookup_cluster(transformlist):
 
 
 def fiedler_cluster(L, k):
-    (vals, vecs) = la.eigs(L)
-    vecs = vecs[:,1:] - np.array([vecs[:,0] for i in xrange(1, vecs.shape[1])]).transpose()
-    vecs = np.real(vecs[:,:k])
+    L = csc_matrix(L, dtype=np.float)
+    (vals, vecs) = la.eigsh(L, k + 1, sigma=0.0000000000001, which='LM')
+    vecs = np.real(vecs[:,1:])
+    print vals
+    print vecs
     signify = lambda(x): True if x > 0 else False
     signify = np.vectorize(signify)
     vecs = signify(vecs)
